@@ -1,0 +1,1821 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Artic Client - Minecraft чит-клиент</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        :root {
+            --primary-color: #2a9fd6;
+            --secondary-color: #1c1c1c;
+            --accent-color: #00b4ff;
+            --dark-color: #121212;
+            --light-color: #f8f9fa;
+            --danger-color: #dc3545;
+            --success-color: #28a745;
+            --warning-color: #ffc107;
+        }
+
+        body {
+            background-color: var(--dark-color);
+            color: var(--light-color);
+            line-height: 1.6;
+        }
+
+        /* Auth Modal */
+        .auth-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.95);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+            animation: fadeIn 0.3s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .auth-container {
+            background-color: var(--secondary-color);
+            border-radius: 10px;
+            padding: 2.5rem;
+            width: 100%;
+            max-width: 400px;
+            border: 2px solid var(--primary-color);
+            position: relative;
+        }
+
+        .close-auth {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            color: #aaa;
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: color 0.3s;
+        }
+
+        .close-auth:hover {
+            color: var(--light-color);
+        }
+
+        .auth-tabs {
+            display: flex;
+            margin-bottom: 2rem;
+            border-bottom: 1px solid #333;
+        }
+
+        .auth-tab {
+            flex: 1;
+            padding: 1rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            border-bottom: 3px solid transparent;
+        }
+
+        .auth-tab.active {
+            color: var(--accent-color);
+            border-bottom: 3px solid var(--accent-color);
+        }
+
+        .auth-form {
+            display: none;
+        }
+
+        .auth-form.active {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #ccc;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 0.8rem;
+            background-color: #2a2a2a;
+            border: 1px solid #444;
+            border-radius: 5px;
+            color: var(--light-color);
+            font-size: 1rem;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+
+        .auth-btn {
+            width: 100%;
+            padding: 0.8rem;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .auth-btn:hover {
+            background-color: var(--accent-color);
+        }
+
+        .auth-error {
+            color: var(--danger-color);
+            margin-top: 0.5rem;
+            font-size: 0.9rem;
+            display: none;
+        }
+
+        .auth-success {
+            color: var(--success-color);
+            margin-top: 0.5rem;
+            font-size: 0.9rem;
+            display: none;
+        }
+
+        /* User Profile */
+        .user-profile {
+            display: none;
+            align-items: center;
+            gap: 10px;
+            position: relative;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+
+        .user-avatar:hover {
+            transform: scale(1.1);
+        }
+
+        .user-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .username {
+            font-weight: bold;
+            color: var(--accent-color);
+        }
+
+        .user-menu {
+            display: none;
+            position: absolute;
+            top: 50px;
+            right: 0;
+            background-color: var(--secondary-color);
+            border: 1px solid #333;
+            border-radius: 5px;
+            min-width: 200px;
+            z-index: 1001;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+        }
+
+        .user-menu.active {
+            display: block;
+            animation: slideDown 0.3s;
+        }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .menu-item {
+            padding: 0.8rem 1rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .menu-item:hover {
+            background-color: #2a2a2a;
+        }
+
+        .menu-item i {
+            width: 20px;
+            color: var(--primary-color);
+        }
+
+        .menu-divider {
+            height: 1px;
+            background-color: #333;
+            margin: 0.5rem 0;
+        }
+
+        .logout-btn {
+            color: var(--danger-color);
+        }
+
+        /* Data Warning */
+        .data-warning {
+            background-color: rgba(255, 193, 7, 0.1);
+            border-left: 4px solid var(--warning-color);
+            padding: 1rem;
+            margin: 2rem auto;
+            border-radius: 0 5px 5px 0;
+            max-width: 800px;
+        }
+
+        .data-warning i {
+            color: var(--warning-color);
+            margin-right: 10px;
+        }
+
+        /* Backup Modal */
+        .backup-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.95);
+            z-index: 2001;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .backup-container {
+            background-color: var(--secondary-color);
+            border-radius: 10px;
+            padding: 2.5rem;
+            width: 100%;
+            max-width: 500px;
+            border: 2px solid var(--primary-color);
+            position: relative;
+        }
+
+        .backup-options {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            margin: 2rem 0;
+        }
+
+        .backup-btn {
+            padding: 1rem;
+            background-color: #2a2a2a;
+            border: 1px solid #444;
+            border-radius: 5px;
+            color: var(--light-color);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .backup-btn:hover {
+            background-color: #333;
+            border-color: var(--primary-color);
+        }
+
+        .backup-btn i {
+            color: var(--primary-color);
+            font-size: 1.2rem;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        /* Restricted Access */
+        .restricted-overlay {
+            display: none;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(5px);
+            z-index: 10;
+            border-radius: 10px;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem;
+            text-align: center;
+        }
+
+        .restricted-overlay i {
+            font-size: 3rem;
+            color: var(--danger-color);
+            margin-bottom: 1rem;
+        }
+
+        /* Header & Navigation */
+        header {
+            background-color: rgba(18, 18, 18, 0.95);
+            backdrop-filter: blur(10px);
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+            border-bottom: 2px solid var(--primary-color);
+        }
+
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 5%;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+
+        .logo i {
+            color: var(--accent-color);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: var(--light-color);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s;
+            position: relative;
+        }
+
+        .nav-links a:hover {
+            color: var(--accent-color);
+        }
+
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            background: var(--accent-color);
+            left: 0;
+            bottom: -5px;
+            transition: width 0.3s;
+        }
+
+        .nav-links a:hover::after {
+            width: 100%;
+        }
+
+        .auth-buttons {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .login-btn, .register-btn {
+            padding: 0.5rem 1.2rem;
+            border-radius: 5px;
+            text-decoration: none;
+            font-weight: bold;
+            transition: all 0.3s;
+            cursor: pointer;
+            border: none;
+            font-size: 0.9rem;
+        }
+
+        .login-btn {
+            background-color: transparent;
+            color: var(--light-color);
+            border: 1px solid var(--primary-color);
+        }
+
+        .login-btn:hover {
+            background-color: rgba(42, 159, 214, 0.1);
+        }
+
+        .register-btn {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .register-btn:hover {
+            background-color: var(--accent-color);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 180, 255, 0.4);
+        }
+
+        .download-btn {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 0.7rem 1.5rem;
+            border-radius: 5px;
+            text-decoration: none;
+            font-weight: bold;
+            transition: all 0.3s;
+            border: none;
+            cursor: pointer;
+        }
+
+        .download-btn:hover {
+            background-color: var(--accent-color);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 180, 255, 0.4);
+        }
+
+        .download-btn:disabled {
+            background-color: #666;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        /* Hero Section */
+        .hero {
+            padding: 10rem 5% 5rem;
+            text-align: center;
+            background: linear-gradient(rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.8)), url('https://images.unsplash.com/photo-1550745165-9bc0b252726f?ixlib=rb-4.0.3&auto=format&fit=crop&w=1770&q=80');
+            background-size: cover;
+            background-position: center;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .hero h1 {
+            font-size: 3.5rem;
+            margin-bottom: 1rem;
+            background: linear-gradient(90deg, var(--primary-color), var(--accent-color));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .hero p {
+            font-size: 1.2rem;
+            max-width: 800px;
+            margin-bottom: 2rem;
+            color: #ccc;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            padding: 5rem 5%;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .feature-card {
+            background-color: var(--secondary-color);
+            padding: 2rem;
+            border-radius: 10px;
+            text-align: center;
+            transition: transform 0.3s;
+            border: 1px solid rgba(42, 159, 214, 0.2);
+            position: relative;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-10px);
+            border-color: var(--primary-color);
+        }
+
+        .feature-icon {
+            font-size: 3rem;
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+        }
+
+        .feature-card h3 {
+            margin-bottom: 1rem;
+            color: var(--accent-color);
+        }
+
+        /* Functions Section */
+        .functions {
+            padding: 5rem 5%;
+            background-color: #0f0f0f;
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 3rem;
+            color: var(--primary-color);
+        }
+
+        .function-list {
+            max-width: 1000px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .function-item {
+            background-color: var(--secondary-color);
+            padding: 1.5rem;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .function-item i {
+            color: var(--success-color);
+            font-size: 1.5rem;
+        }
+
+        /* Download Section */
+        .download-section {
+            padding: 5rem 5%;
+            text-align: center;
+        }
+
+        .download-options {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            flex-wrap: wrap;
+            margin-top: 3rem;
+        }
+
+        .version-card {
+            background-color: var(--secondary-color);
+            padding: 2rem;
+            border-radius: 10px;
+            width: 280px;
+            transition: all 0.3s;
+            position: relative;
+        }
+
+        .version-card:hover {
+            transform: scale(1.05);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+        }
+
+        .version-card h3 {
+            color: var(--accent-color);
+            margin-bottom: 1rem;
+        }
+
+        .version-card .price {
+            font-size: 1.8rem;
+            font-weight: bold;
+            margin: 1rem 0;
+            color: var(--primary-color);
+        }
+
+        .free {
+            color: var(--success-color) !important;
+        }
+
+        /* Footer */
+        footer {
+            background-color: #0a0a0a;
+            padding: 3rem 5% 1rem;
+            margin-top: 3rem;
+            border-top: 1px solid var(--primary-color);
+        }
+
+        .footer-content {
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .footer-section {
+            flex: 1;
+            min-width: 250px;
+        }
+
+        .footer-section h3 {
+            color: var(--primary-color);
+            margin-bottom: 1.5rem;
+        }
+
+        .footer-links {
+            list-style: none;
+        }
+
+        .footer-links li {
+            margin-bottom: 0.8rem;
+        }
+
+        .footer-links a {
+            color: #aaa;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .footer-links a:hover {
+            color: var(--accent-color);
+        }
+
+        .social-links {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .social-links a {
+            color: var(--light-color);
+            font-size: 1.5rem;
+            transition: color 0.3s;
+        }
+
+        .social-links a:hover {
+            color: var(--primary-color);
+        }
+
+        .copyright {
+            text-align: center;
+            margin-top: 3rem;
+            padding-top: 1rem;
+            border-top: 1px solid #333;
+            color: #777;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .navbar {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .nav-links {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+            
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+            
+            .download-options {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .auth-buttons {
+                flex-direction: column;
+                width: 100%;
+            }
+            
+            .login-btn, .register-btn {
+                width: 100%;
+            }
+        }
+
+        /* Loading Spinner */
+        .spinner {
+            display: none;
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(0, 180, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: var(--accent-color);
+            animation: spin 1s ease-in-out infinite;
+            margin: 10px auto;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* Download Success Message */
+        .download-success {
+            display: none;
+            background-color: rgba(40, 167, 69, 0.1);
+            border-left: 4px solid var(--success-color);
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 0 5px 5px 0;
+        }
+    </style>
+</head>
+<body>
+    <!-- Auth Modal -->
+    <div class="auth-modal" id="authModal">
+        <div class="auth-container">
+            <div class="close-auth" id="closeAuth">&times;</div>
+            
+            <div class="auth-tabs">
+                <div class="auth-tab active" id="loginTab">Вход</div>
+                <div class="auth-tab" id="registerTab">Регистрация</div>
+            </div>
+            
+            <form class="auth-form active" id="loginForm">
+                <div class="form-group">
+                    <label for="loginEmail">Email</label>
+                    <input type="email" id="loginEmail" placeholder="your@email.com" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="loginPassword">Пароль</label>
+                    <input type="password" id="loginPassword" placeholder="Введите пароль" required>
+                </div>
+                
+                <div class="auth-error" id="loginError">Неверный email или пароль</div>
+                <div class="auth-success" id="loginSuccess">Вход выполнен успешно!</div>
+                
+                <button type="submit" class="auth-btn">Войти</button>
+            </form>
+            
+            <form class="auth-form" id="registerForm">
+                <div class="form-group">
+                    <label for="registerUsername">Имя пользователя</label>
+                    <input type="text" id="registerUsername" placeholder="Придумайте логин" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="registerEmail">Email</label>
+                    <input type="email" id="registerEmail" placeholder="your@email.com" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="registerPassword">Пароль</label>
+                    <input type="password" id="registerPassword" placeholder="Не менее 6 символов" required minlength="6">
+                </div>
+                
+                <div class="form-group">
+                    <label for="registerConfirmPassword">Подтвердите пароль</label>
+                    <input type="password" id="registerConfirmPassword" placeholder="Повторите пароль" required>
+                </div>
+                
+                <div class="auth-error" id="registerError">Ошибка регистрации</div>
+                <div class="auth-success" id="registerSuccess">Регистрация успешна!</div>
+                
+                <button type="submit" class="auth-btn">Зарегистрироваться</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Backup Modal -->
+    <div class="backup-modal" id="backupModal">
+        <div class="backup-container">
+            <div class="close-auth" id="closeBackup">&times;</div>
+            <h2 style="color: var(--primary-color); margin-bottom: 1rem;">Управление аккаунтом</h2>
+            <p style="color: #aaa; margin-bottom: 2rem;">Ваши данные хранятся только в этом браузере. Создайте резервную копию!</p>
+            
+            <div class="backup-options">
+                <div class="backup-btn" id="exportBackup">
+                    <i class="fas fa-file-export"></i>
+                    <div>
+                        <strong>Экспорт аккаунта</strong>
+                        <p style="font-size: 0.9rem; color: #aaa; margin-top: 0.2rem;">Скачайте файл с данными вашего аккаунта</p>
+                    </div>
+                </div>
+                
+                <div class="backup-btn" id="importBackup">
+                    <i class="fas fa-file-import"></i>
+                    <div>
+                        <strong>Импорт аккаунта</strong>
+                        <p style="font-size: 0.9rem; color: #aaa; margin-top: 0.2rem;">Загрузите файл для восстановления аккаунта</p>
+                    </div>
+                </div>
+                
+                <input type="file" id="backupFileInput" class="file-input" accept=".json">
+                
+                <div class="backup-btn" id="deleteAccount">
+                    <i class="fas fa-trash-alt"></i>
+                    <div>
+                        <strong>Удалить аккаунт</strong>
+                        <p style="font-size: 0.9rem; color: #aaa; margin-top: 0.2rem;">Полностью удалить данные аккаунта</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="auth-success" id="backupSuccess" style="display: none;"></div>
+            <div class="auth-error" id="backupError" style="display: none;"></div>
+        </div>
+    </div>
+
+    <!-- Header -->
+    <header>
+        <nav class="navbar">
+            <div class="logo">
+                <i class="fas fa-user-secret"></i>
+                <span>Artic Client</span>
+            </div>
+            <ul class="nav-links">
+                <li><a href="#home">Главная</a></li>
+                <li><a href="#features">Особенности</a></li>
+                <li><a href="#functions">Функции</a></li>
+                <li><a href="#download">Скачать</a></li>
+                <li><a href="#faq">FAQ</a></li>
+            </ul>
+            
+            <div class="auth-buttons" id="authButtons">
+                <button class="login-btn" id="openLogin">Войти</button>
+                <button class="register-btn" id="openRegister">Регистрация</button>
+            </div>
+            
+            <div class="user-profile" id="userProfile">
+                <div class="user-avatar" id="userAvatar" title="Меню пользователя">U</div>
+                <div class="user-menu" id="userMenu">
+                    <div class="menu-item" id="profileInfo">
+                        <i class="fas fa-user"></i>
+                        <div>
+                            <div id="menuUsername">Пользователь</div>
+                            <div style="font-size: 0.8rem; color: #aaa;" id="menuEmail">email@example.com</div>
+                        </div>
+                    </div>
+                    <div class="menu-divider"></div>
+                    <div class="menu-item" id="backupAccount">
+                        <i class="fas fa-database"></i>
+                        <span>Резервная копия</span>
+                    </div>
+                    <div class="menu-divider"></div>
+                    <div class="menu-item logout-btn" id="logoutBtn">
+                        <i class="fas fa-sign-out-alt"></i>
+                        <span>Выйти</span>
+                    </div>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero" id="home">
+        <h1>Artic Client для Minecraft</h1>
+        <p>Мощный и крутой чит-клиент для Minecraft с передовыми функциями, высокой производительностью и удобным интерфейсом. Подходит для различных серверов.</p>
+        
+        <button class="download-btn" id="heroDownloadBtn" style="font-size: 1.2rem; padding: 1rem 2rem;">
+            <i class="fas fa-download"></i> Скачать Artic Client 2025
+        </button>
+    </section>
+
+    <!-- Data Warning -->
+    <div class="data-warning" id="dataWarning" style="display: none;">
+        <i class="fas fa-exclamation-triangle"></i>
+        <strong>Важная информация:</strong> Ваши данные (аккаунт) хранятся только в этом браузере на этом компьютере. 
+        Если вы очистите кэш браузера или переустановите систему, аккаунт будет утерян. 
+        <a href="#" style="color: var(--accent-color); text-decoration: underline;" id="backupWarningLink">Создайте резервную копию</a> для сохранения аккаунта.
+    </div>
+
+    <!-- Features Section -->
+    <section class="features-grid" id="features">
+        <div class="feature-card">
+            <div class="feature-icon">
+                <i class="fas fa-eye-slash"></i>
+            </div>
+            <h3>Безопасность</h3>
+            <p>Новейшие методы обхода античитов 2025 года, обеспечивающие безопасное использование на большинстве серверов.</p>
+            <div class="restricted-overlay" id="feature1Restricted">
+                <i class="fas fa-lock"></i>
+                <p>Зарегистрируйтесь для доступа ко всем функциям</p>
+                <button class="login-btn" style="margin-top: 1rem;" onclick="showAuthModal('register')">Зарегистрироваться</button>
+            </div>
+        </div>
+        
+        <div class="feature-card">
+            <div class="feature-icon">
+                <i class="fas fa-tachometer-alt"></i>
+            </div>
+            <h3>Производительность</h3>
+            <p>Оптимизированный код, минимальное потребление ресурсов и высокая стабильность работы. Обновлено в этом месяце.</p>
+        </div>
+        
+        <div class="feature-card">
+            <div class="feature-icon">
+                <i class="fas fa-tachometer-alt"></i>
+            </div>
+            <h3>Функционал</h3>
+            <p>Более 50 функций для PvP.</p>
+        </div>
+        
+        <div class="feature-card">
+            <div class="feature-icon">
+                <i class="fas fa-cogs"></i>
+            </div>
+            <h3>Легкая настройка</h3>
+            <p>Интуитивно понятный интерфейс с детальными настройками каждого модуля под ваши нужды.</p>
+        </div>
+    </section>
+
+    <!-- Functions Section -->
+    <section class="functions" id="functions">
+        <h2 class="section-title">Доступные функции в Artic Client</h2>
+        <div class="function-list">
+            <div class="function-item">
+                <i class="fas fa-check-circle"></i>
+                <span>AttackAura - автоматическая атака противников</span>
+            </div>
+            <div class="function-item">
+                <i class="fas fa-check-circle"></i>
+                <span>Flight - полет</span>
+            </div>
+            <div class="function-item">
+                <i class="fas fa-check-circle"></i>
+                <span>Speed - увеличение скорости передвижения</span>
+            </div>
+            <div class="function-item">
+                <i class="fas fa-check-circle"></i>
+                <span>NoFall - отсутствие урона от падения</span>
+            </div>
+            <div class="function-item">
+                <i class="fas fa-check-circle"></i>
+                <span>MineHelper - Дает информацию о шахте на анархии фантайм и ее копий</span>
+            </div>
+            <div class="function-item">
+                <i class="fas fa-check-circle"></i>
+                <span>TapeMouse - автоматический клик</span>
+            </div>
+            <div class="function-item">
+                <i class="fas fa-check-circle"></i>
+                <span>ESP - подсветка игроков и мобов</span>
+            </div>
+            <div class="function-item">
+                <i class="fas fa-check-circle"></i>
+                <span>Arrows - линии к другим игрокам</span>
+            </div>
+            <div class="function-item">
+                <i class="fas fa-check-circle"></i>
+                <span>Gui Move - управление игроком в gui</span>
+            </div>
+            <div class="function-item">
+                <i class="fas fa-check-circle"></i>
+                <span>И многое другое</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- Download Section -->
+    <section class="download-section" id="download">
+        <h2 class="section-title">Скачать Artic Client</h2>
+        <p>Выберите какую версию хотите купить-установить</p>
+        
+        <div class="download-options">
+            <div class="version-card">
+                <h3>Artic Free</h3>
+                <p>Бесплатная версия с базовыми функциями для обхода серверов</p>
+                <div class="price free">БЕСПЛАТНО</div>
+                <p>Поддержка: 1.16.5</p>
+                <button id="free-download-btn" class="download-btn" style="display: inline-block; margin-top: 1rem;">
+                    <i class="fas fa-download"></i> Скачать
+                </button>
+                <div class="restricted-overlay" id="freeRestricted">
+                    <i class="fas fa-lock"></i>
+                    <p>Требуется регистрация для скачивания</p>
+                    <button class="login-btn" style="margin-top: 1rem;" onclick="showAuthModal('register')">Зарегистрироваться</button>
+                </div>
+                <div class="spinner" id="download-spinner"></div>
+                <div class="download-success" id="download-success">
+                    <i class="fas fa-check-circle"></i> Загрузка началась! Проверьте папку "Загрузки"
+                </div>
+            </div>
+            
+            <div class="version-card">
+                <h3>Artic Release</h3>
+                <p>Полная версия со всеми функциями нашего клиента регулярно обновляется</p>
+                <div class="price">599Руб</div>
+                <p>Поддержка: 1.16.5</p>
+                <button id="premium-buy-btn" class="download-btn" style="display: inline-block; margin-top: 1rem;">
+                    <i class="fas fa-shopping-cart"></i> Купить
+                </button>
+                <div class="restricted-overlay" id="premiumRestricted">
+                    <i class="fas fa-lock"></i>
+                    <p>Требуется регистрация для покупки</p>
+                    <button class="login-btn" style="margin-top: 1rem;" onclick="showAuthModal('register')">Зарегистрироваться</button>
+                </div>
+            </div>
+        </div>
+        
+        <div style="margin-top: 3rem; max-width: 800px; margin-left: auto; margin-right: auto;">
+            <h3>Инструкция по установке:</h3>
+            <ol style="text-align: left; margin-top: 1rem; padding-left: 1.5rem;">
+                <li>Скачайте нашу версию клиента</li>
+                <li>Установите чистую версию 1.16.5 из лаунчера</li>
+                <li>Поместите файл 1.16.5.jar в папку 1.16.5 которая находится в папке versions</li>
+                <li>Запустите Minecraft с установленным модлоудером</li>
+                <li>Нажмите RShift для открытия меню настроек</li>
+            </ol>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer id="faq">
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>Artic Client</h3>
+                <p>Лучший чит-клиент для Minecraft. Постоянно обновляется и совершенствуется.</p>
+                <div class="social-links">
+                    <a href="#"><i class="fab fa-discord"></i></a>
+                    <a href="#"><i class="fab fa-youtube"></i></a>
+                    <a href="#"><i class="fab fa-telegram"></i></a>
+                    <a href="#"><i class="fab fa-github"></i></a>
+                </div>
+            </div>
+            
+            <div class="footer-section">
+                <h3>Быстрые ссылки</h3>
+                <ul class="footer-links">
+                    <li><a href="#home">Главная</a></li>
+                    <li><a href="#features">Особенности</a></li>
+                    <li><a href="#functions">Функции</a></li>
+                    <li><a href="#download">Скачать</a></li>
+                </ul>
+            </div>
+            
+            <div class="footer-section">
+                <h3>Поддержка</h3>
+                <ul class="footer-links">
+                    <li><a href="#">Документация</a></li>
+                    <li><a href="#">Частые вопросы</a></li>
+                    <li><a href="#">Сообщить о баге</a></li>
+                    <li><a href="#">Контакты</a></li>
+                </ul>
+            </div>
+            
+            <div class="footer-section">
+                <h3>Юридическая информация</h3>
+                <ul class="footer-links">
+                    <li><a href="#">Условия использования 2025</a></li>
+                    <li><a href="#">Политика конфиденциальности</a></li>
+                    <li><a href="#">Отказ от ответственности</a></li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="copyright">
+            <p>&copy; 2025 Artic Client. Все права защищены. Minecraft является товарным знаком Mojang Studios. Данный проект не аффилирован с Mojang/Microsoft.</p>
+        </div>
+    </footer>
+
+    <script>
+        // ========================
+        // СИСТЕМА БЕЗОПАСНОГО ХРАНЕНИЯ
+        // ========================
+        
+        // Простое шифрование для демонстрации (в реальном проекте используйте серверное шифрование)
+        function encryptData(data, key = 'artic-client-2025') {
+            try {
+                // Простой алгоритм шифрования для демо
+                let encrypted = '';
+                for (let i = 0; i < data.length; i++) {
+                    const charCode = data.charCodeAt(i) ^ key.charCodeAt(i % key.length);
+                    encrypted += String.fromCharCode(charCode);
+                }
+                return btoa(encrypted);
+            } catch (error) {
+                console.error('Ошибка шифрования:', error);
+                return data;
+            }
+        }
+
+        function decryptData(encryptedData, key = 'artic-client-2025') {
+            try {
+                const decoded = atob(encryptedData);
+                let decrypted = '';
+                for (let i = 0; i < decoded.length; i++) {
+                    const charCode = decoded.charCodeAt(i) ^ key.charCodeAt(i % key.length);
+                    decrypted += String.fromCharCode(charCode);
+                }
+                return decrypted;
+            } catch (error) {
+                console.error('Ошибка дешифрования:', error);
+                return encryptedData;
+            }
+        }
+
+        // Хеширование пароля (клиентское, для демо)
+        function hashPassword(password) {
+            // Простой хеш для демонстрации
+            let hash = 0;
+            for (let i = 0; i < password.length; i++) {
+                const char = password.charCodeAt(i);
+                hash = ((hash << 5) - hash) + char;
+                hash = hash & hash;
+            }
+            return Math.abs(hash).toString(16);
+        }
+
+        // ========================
+        // ОСНОВНАЯ ЛОГИКА
+        // ========================
+        
+        const authModal = document.getElementById('authModal');
+        const backupModal = document.getElementById('backupModal');
+        const closeAuth = document.getElementById('closeAuth');
+        const closeBackup = document.getElementById('closeBackup');
+        const openLogin = document.getElementById('openLogin');
+        const openRegister = document.getElementById('openRegister');
+        const loginTab = document.getElementById('loginTab');
+        const registerTab = document.getElementById('registerTab');
+        const loginForm = document.getElementById('loginForm');
+        const registerForm = document.getElementById('registerForm');
+        const loginError = document.getElementById('loginError');
+        const registerError = document.getElementById('registerError');
+        const loginSuccess = document.getElementById('loginSuccess');
+        const registerSuccess = document.getElementById('registerSuccess');
+        const userProfile = document.getElementById('userProfile');
+        const userAvatar = document.getElementById('userAvatar');
+        const userMenu = document.getElementById('userMenu');
+        const menuUsername = document.getElementById('menuUsername');
+        const menuEmail = document.getElementById('menuEmail');
+        const authButtons = document.getElementById('authButtons');
+        const logoutBtn = document.getElementById('logoutBtn');
+        const backupAccount = document.getElementById('backupAccount');
+        const exportBackup = document.getElementById('exportBackup');
+        const importBackup = document.getElementById('importBackup');
+        const backupFileInput = document.getElementById('backupFileInput');
+        const deleteAccount = document.getElementById('deleteAccount');
+        const backupSuccess = document.getElementById('backupSuccess');
+        const backupError = document.getElementById('backupError');
+        const dataWarning = document.getElementById('dataWarning');
+        const backupWarningLink = document.getElementById('backupWarningLink');
+        
+        const heroDownloadBtn = document.getElementById('heroDownloadBtn');
+        const freeDownloadBtn = document.getElementById('free-download-btn');
+        const premiumBuyBtn = document.getElementById('premium-buy-btn');
+        
+        // Ограничивающие оверлеи
+        const freeRestricted = document.getElementById('freeRestricted');
+        const premiumRestricted = document.getElementById('premiumRestricted');
+        const feature1Restricted = document.getElementById('feature1Restricted');
+
+        // Текущий пользователь
+        let currentUser = null;
+
+        // Инициализация при загрузке
+        document.addEventListener('DOMContentLoaded', function() {
+            loadUserData();
+            updateUI();
+            setupEventListeners();
+            showDataWarning();
+        });
+
+        // Загрузка данных пользователя
+        function loadUserData() {
+            try {
+                const encryptedUserData = localStorage.getItem('articClientUserEncrypted');
+                if (encryptedUserData) {
+                    const userData = JSON.parse(decryptData(encryptedUserData));
+                    currentUser = userData;
+                }
+            } catch (error) {
+                console.error('Ошибка загрузки пользователя:', error);
+                localStorage.removeItem('articClientUserEncrypted');
+            }
+        }
+
+        // Сохранение данных пользователя
+        function saveUserData(user) {
+            try {
+                const encryptedData = encryptData(JSON.stringify(user));
+                localStorage.setItem('articClientUserEncrypted', encryptedData);
+            } catch (error) {
+                console.error('Ошибка сохранения пользователя:', error);
+            }
+        }
+
+        // Сохранение всех пользователей (для регистрации)
+        function saveAllUsers(users) {
+            try {
+                const encryptedData = encryptData(JSON.stringify(users), 'all-users-key');
+                localStorage.setItem('articClientAllUsersEncrypted', encryptedData);
+            } catch (error) {
+                console.error('Ошибка сохранения всех пользователей:', error);
+            }
+        }
+
+        // Загрузка всех пользователей
+        function loadAllUsers() {
+            try {
+                const encryptedData = localStorage.getItem('articClientAllUsersEncrypted');
+                if (encryptedData) {
+                    return JSON.parse(decryptData(encryptedData, 'all-users-key'));
+                }
+            } catch (error) {
+                console.error('Ошибка загрузки всех пользователей:', error);
+            }
+            return [];
+        }
+
+        function updateUI() {
+            if (currentUser) {
+                // Пользователь авторизован
+                authButtons.style.display = 'none';
+                userProfile.style.display = 'flex';
+                userAvatar.textContent = currentUser.username.charAt(0).toUpperCase();
+                menuUsername.textContent = currentUser.username;
+                menuEmail.textContent = currentUser.email;
+                
+                // Скрываем ограничения
+                hideAllRestrictions();
+                
+                // Активируем кнопки
+                heroDownloadBtn.disabled = false;
+                freeDownloadBtn.disabled = false;
+                premiumBuyBtn.disabled = false;
+                
+                // Скрываем предупреждение если оно было показано
+                dataWarning.style.display = 'none';
+            } else {
+                // Пользователь не авторизован
+                authButtons.style.display = 'flex';
+                userProfile.style.display = 'none';
+                
+                // Показываем ограничения
+                showAllRestrictions();
+                
+                // Деактивируем кнопки
+                heroDownloadBtn.disabled = true;
+                freeDownloadBtn.disabled = true;
+                premiumBuyBtn.disabled = true;
+            }
+        }
+
+        function showDataWarning() {
+            // Показываем предупреждение только если пользователь авторизован
+            if (currentUser && !localStorage.getItem('dontShowWarning')) {
+                dataWarning.style.display = 'block';
+            }
+        }
+
+        function hideAllRestrictions() {
+            freeRestricted.style.display = 'none';
+            premiumRestricted.style.display = 'none';
+            feature1Restricted.style.display = 'none';
+        }
+
+        function showAllRestrictions() {
+            freeRestricted.style.display = 'flex';
+            premiumRestricted.style.display = 'flex';
+            feature1Restricted.style.display = 'flex';
+        }
+
+        function setupEventListeners() {
+            // Открытие модального окна
+            openLogin.addEventListener('click', () => showAuthModal('login'));
+            openRegister.addEventListener('click', () => showAuthModal('register'));
+            
+            // Закрытие модальных окон
+            closeAuth.addEventListener('click', () => authModal.style.display = 'none');
+            closeBackup.addEventListener('click', () => backupModal.style.display = 'none');
+            
+            // Клик вне модальных окон
+            window.addEventListener('click', (e) => {
+                if (e.target === authModal) authModal.style.display = 'none';
+                if (e.target === backupModal) backupModal.style.display = 'none';
+                if (!e.target.closest('.user-profile') && userMenu.classList.contains('active')) {
+                    userMenu.classList.remove('active');
+                }
+            });
+            
+            // Меню пользователя
+            userAvatar.addEventListener('click', (e) => {
+                e.stopPropagation();
+                userMenu.classList.toggle('active');
+            });
+            
+            // Переключение табов
+            loginTab.addEventListener('click', () => switchTab('login'));
+            registerTab.addEventListener('click', () => switchTab('register'));
+            
+            // Формы
+            loginForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                loginUser();
+            });
+            
+            registerForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                registerUser();
+            });
+            
+            // Выход
+            logoutBtn.addEventListener('click', logoutUser);
+            
+            // Резервное копирование
+            backupAccount.addEventListener('click', () => {
+                userMenu.classList.remove('active');
+                backupModal.style.display = 'flex';
+            });
+            
+            backupWarningLink.addEventListener('click', (e) => {
+                e.preventDefault();
+                if (currentUser) {
+                    backupModal.style.display = 'flex';
+                } else {
+                    showAuthModal('register');
+                }
+            });
+            
+            // Экспорт
+            exportBackup.addEventListener('click', exportUserData);
+            
+            // Импорт
+            importBackup.addEventListener('click', () => backupFileInput.click());
+            backupFileInput.addEventListener('change', importUserData);
+            
+            // Удаление аккаунта
+            deleteAccount.addEventListener('click', deleteUserAccount);
+            
+            // Скачивание и покупка
+            heroDownloadBtn.addEventListener('click', handleDownload);
+            freeDownloadBtn.addEventListener('click', handleDownload);
+            premiumBuyBtn.addEventListener('click', handlePurchase);
+        }
+
+        function showAuthModal(tab) {
+            authModal.style.display = 'flex';
+            switchTab(tab);
+        }
+
+        function switchTab(tab) {
+            if (tab === 'login') {
+                loginTab.classList.add('active');
+                registerTab.classList.remove('active');
+                loginForm.classList.add('active');
+                registerForm.classList.remove('active');
+                loginError.style.display = 'none';
+                loginSuccess.style.display = 'none';
+            } else {
+                registerTab.classList.add('active');
+                loginTab.classList.remove('active');
+                registerForm.classList.add('active');
+                loginForm.classList.remove('active');
+                registerError.style.display = 'none';
+                registerSuccess.style.display = 'none';
+            }
+        }
+
+        function loginUser() {
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            const passwordHash = hashPassword(password);
+            
+            const users = loadAllUsers();
+            const user = users.find(u => u.email === email && u.passwordHash === passwordHash);
+            
+            if (user) {
+                // Сохраняем текущего пользователя (без хеша пароля в основном объекте)
+                const userToSave = {
+                    id: user.id,
+                    username: user.username,
+                    email: user.email,
+                    registrationDate: user.registrationDate,
+                    premium: user.premium || false
+                };
+                
+                currentUser = userToSave;
+                saveUserData(userToSave);
+                
+                loginSuccess.style.display = 'block';
+                loginError.style.display = 'none';
+                
+                setTimeout(() => {
+                    authModal.style.display = 'none';
+                    updateUI();
+                    showNotification(`Добро пожаловать, ${user.username}!`, 'success');
+                }, 1000);
+            } else {
+                loginError.style.display = 'block';
+                loginSuccess.style.display = 'none';
+            }
+        }
+
+        function registerUser() {
+            const usernameInput = document.getElementById('registerUsername').value.trim();
+            const email = document.getElementById('registerEmail').value.trim();
+            const password = document.getElementById('registerPassword').value;
+            const confirmPassword = document.getElementById('registerConfirmPassword').value;
+            
+            // Валидация
+            if (password !== confirmPassword) {
+                registerError.textContent = 'Пароли не совпадают';
+                registerError.style.display = 'block';
+                registerSuccess.style.display = 'none';
+                return;
+            }
+            
+            if (password.length < 6) {
+                registerError.textContent = 'Пароль должен содержать минимум 6 символов';
+                registerError.style.display = 'block';
+                registerSuccess.style.display = 'none';
+                return;
+            }
+            
+            if (usernameInput.length < 3) {
+                registerError.textContent = 'Имя пользователя должно содержать минимум 3 символа';
+                registerError.style.display = 'block';
+                registerSuccess.style.display = 'none';
+                return;
+            }
+            
+            // Проверяем, нет ли уже такого пользователя
+            const users = loadAllUsers();
+            const existingUser = users.find(u => u.email === email);
+            
+            if (existingUser) {
+                registerError.textContent = 'Пользователь с таким email уже существует';
+                registerError.style.display = 'block';
+                registerSuccess.style.display = 'none';
+                return;
+            }
+            
+            // Создаем нового пользователя
+            const newUser = {
+                id: Date.now(),
+                username: usernameInput,
+                email: email,
+                passwordHash: hashPassword(password), // Сохраняем только хеш!
+                registrationDate: new Date().toISOString(),
+                premium: false
+            };
+            
+            // Сохраняем пользователя
+            users.push(newUser);
+            saveAllUsers(users);
+            
+            // Сохраняем текущего пользователя (без хеша пароля)
+            const userToSave = {
+                id: newUser.id,
+                username: newUser.username,
+                email: newUser.email,
+                registrationDate: newUser.registrationDate,
+                premium: newUser.premium
+            };
+            
+            currentUser = userToSave;
+            saveUserData(userToSave);
+            
+            // Показываем успех
+            registerSuccess.style.display = 'block';
+            registerError.style.display = 'none';
+            
+            // Обновляем интерфейс
+            setTimeout(() => {
+                authModal.style.display = 'none';
+                updateUI();
+                showNotification(`Регистрация успешна! Добро пожаловать, ${usernameInput}!`, 'success');
+            }, 1000);
+        }
+
+        function logoutUser() {
+            if (confirm('Вы уверены, что хотите выйти?')) {
+                currentUser = null;
+                localStorage.removeItem('articClientUserEncrypted');
+                updateUI();
+                showNotification('Вы успешно вышли из аккаунта', 'info');
+            }
+        }
+
+        // ========================
+        // РЕЗЕРВНОЕ КОПИРОВАНИЕ
+        // ========================
+        
+        function exportUserData() {
+            if (!currentUser) return;
+            
+            try {
+                // Получаем полные данные пользователя
+                const users = loadAllUsers();
+                const fullUserData = users.find(u => u.id === currentUser.id);
+                
+                if (!fullUserData) {
+                    showBackupError('Данные пользователя не найдены');
+                    return;
+                }
+                
+                // Создаем объект для экспорта
+                const exportData = {
+                    version: '1.0',
+                    exportDate: new Date().toISOString(),
+                    user: fullUserData,
+                    metadata: {
+                        app: 'Artic Client',
+                        warning: 'Не передавайте этот файл третьим лицам!'
+                    }
+                };
+                
+                // Создаем и скачиваем файл
+                const dataStr = JSON.stringify(exportData, null, 2);
+                const dataBlob = new Blob([dataStr], { type: 'application/json' });
+                const url = URL.createObjectURL(dataBlob);
+                
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = `artic_client_backup_${currentUser.username}_${Date.now()}.json`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(url);
+                
+                showBackupSuccess('Резервная копия успешно экспортирована!');
+                
+            } catch (error) {
+                console.error('Ошибка экспорта:', error);
+                showBackupError('Ошибка при экспорте данных');
+            }
+        }
+
+        function importUserData(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const importData = JSON.parse(e.target.result);
+                    
+                    // Проверяем валидность файла
+                    if (!importData.user || !importData.user.email || !importData.user.passwordHash) {
+                        showBackupError('Неверный формат файла резервной копии');
+                        return;
+                    }
+                    
+                    // Загружаем существующих пользователей
+                    const users = loadAllUsers();
+                    
+                    // Проверяем, нет ли конфликтов
+                    const existingUserIndex = users.findIndex(u => u.email === importData.user.email);
+                    if (existingUserIndex !== -1) {
+                        if (!confirm('Пользователь с таким email уже существует. Заменить данные?')) {
+                            showBackupError('Импорт отменен');
+                            return;
+                        }
+                        users[existingUserIndex] = importData.user;
+                    } else {
+                        users.push(importData.user);
+                    }
+                    
+                    // Сохраняем всех пользователей
+                    saveAllUsers(users);
+                    
+                    // Входим под восстановленным пользователем
+                    const userToSave = {
+                        id: importData.user.id,
+                        username: importData.user.username,
+                        email: importData.user.email,
+                        registrationDate: importData.user.registrationDate,
+                        premium: importData.user.premium || false
+                    };
+                    
+                    currentUser = userToSave;
+                    saveUserData(userToSave);
+                    
+                    // Очищаем input
+                    backupFileInput.value = '';
+                    
+                    // Обновляем интерфейс
+                    updateUI();
+                    backupModal.style.display = 'none';
+                    showNotification('Аккаунт успешно восстановлен из резервной копии!', 'success');
+                    
+                } catch (error) {
+                    console.error('Ошибка импорта:', error);
+                    showBackupError('Ошибка при импорте данных. Проверьте файл.');
+                }
+            };
+            
+            reader.onerror = function() {
+                showBackupError('Ошибка чтения файла');
+            };
+            
+            reader.readAsText(file);
+        }
+
+        function deleteUserAccount() {
+            if (!currentUser) return;
+            
+            if (confirm('ВНИМАНИЕ: Это действие полностью удалит ваш аккаунт. Вы уверены?')) {
+                if (confirm('Это действие нельзя отменить. УДАЛИТЬ АККАУНТ?')) {
+                    try {
+                        // Удаляем из общего списка
+                        const users = loadAllUsers();
+                        const updatedUsers = users.filter(u => u.email !== currentUser.email);
+                        saveAllUsers(updatedUsers);
+                        
+                        // Удаляем текущего пользователя
+                        currentUser = null;
+                        localStorage.removeItem('articClientUserEncrypted');
+                        
+                        // Закрываем модальное окно
+                        backupModal.style.display = 'none';
+                        
+                        // Обновляем интерфейс
+                        updateUI();
+                        
+                        showNotification('Аккаунт успешно удален', 'info');
+                        
+                    } catch (error) {
+                        console.error('Ошибка удаления:', error);
+                        showBackupError('Ошибка при удалении аккаунта');
+                    }
+                }
+            }
+        }
+
+        function showBackupSuccess(message) {
+            backupSuccess.textContent = message;
+            backupSuccess.style.display = 'block';
+            backupError.style.display = 'none';
+            
+            setTimeout(() => {
+                backupSuccess.style.display = 'none';
+            }, 3000);
+        }
+
+        function showBackupError(message) {
+            backupError.textContent = message;
+            backupError.style.display = 'block';
+            backupSuccess.style.display = 'none';
+            
+            setTimeout(() => {
+                backupError.style.display = 'none';
+            }, 3000);
+        }
+
+        // ========================
+        // ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ
+        // ========================
+        
+        function showNotification(message, type = 'info') {
+            // Создаем уведомление
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                padding: 1rem 1.5rem;
+                background-color: ${type === 'success' ? 'var(--success-color)' : type === 'error' ? 'var(--danger-color)' : 'var(--primary-color)'};
+                color: white;
+                border-radius: 5px;
+                z-index: 3000;
+                animation: slideIn 0.3s;
+                box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            `;
+            
+            notification.textContent = message;
+            document.body.appendChild(notification);
+            
+            // Удаляем через 3 секунды
+            setTimeout(() => {
+                notification.style.animation = 'slideOut 0.3s';
+                setTimeout(() => notification.remove(), 300);
+            }, 3000);
+        }
+
+        function handleDownload() {
+            if (!currentUser) {
+                showAuthModal('register');
+                return;
+            }
+            initiateDownload();
+        }
+
+        function handlePurchase() {
+            if (!currentUser) {
+                showAuthModal('register');
+                return;
+            }
+            initiatePurchase();
+        }
+
+        function initiateDownload() {
+            const spinner = document.getElementById('download-spinner');
+            const successMsg = document.getElementById('download-success');
+            const button = freeDownloadBtn;
+            
+            button.style.display = 'none';
+            spinner.style.display = 'block';
+            
+            setTimeout(function() {
+                spinner.style.display = 'none';
+                successMsg.style.display = 'block';
+                
+                setTimeout(function() {
+                    // Ссылка для скачивания
+                    window.open('https://drive.google.com/uc?export=download&id=1B-X5dHz4Nmq-oMHFsqV70e00MuyqXLuA', '_blank');
+                    
+                    setTimeout(function() {
+                        successMsg.style.display = 'none';
+                        button.style.display = 'inline-block';
+                    }, 3000);
+                }, 1000);
+            }, 2000);
+        }
+
+        function initiatePurchase() {
+            if (confirm('Перейти к оплате премиум версии за 599 руб?')) {
+                // Обновляем статус пользователя
+                if (currentUser) {
+                    currentUser.premium = true;
+                    saveUserData(currentUser);
+                    
+                    // Обновляем в общем списке
+                    const users = loadAllUsers();
+                    const userIndex = users.findIndex(u => u.id === currentUser.id);
+                    if (userIndex !== -1) {
+                        users[userIndex].premium = true;
+                        saveAllUsers(users);
+                    }
+                    
+                    showNotification('Спасибо за покупку! Теперь у вас есть доступ к премиум версии.', 'success');
+                }
+            }
+        }
+
+        // Добавляем стили для анимаций уведомлений
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideIn {
+                from { transform: translateX(100%); opacity: 0; }
+                to { transform: translateX(0); opacity: 1; }
+            }
+            @keyframes slideOut {
+                from { transform: translateX(0); opacity: 1; }
+                to { transform: translateX(100%); opacity: 0; }
+            }
+        `;
+        document.head.appendChild(style);
+
+        // Плавная прокрутка
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const targetId = this.getAttribute('href');
+                if(targetId === '#') return;
+                
+                const targetElement = document.querySelector(targetId);
+                if(targetElement) {
+                    window.scrollTo({
+                        top: targetElement.offsetTop - 80,
+                        behavior: 'smooth'
+                    });
+                }
+            });
+        });
+        
+        // Изменение прозрачности хедера при скролле
+        window.addEventListener('scroll', function() {
+            const header = document.querySelector('header');
+            if (window.scrollY > 100) {
+                header.style.backgroundColor = 'rgba(18, 18, 18, 0.98)';
+            } else {
+                header.style.backgroundColor = 'rgba(18, 18, 18, 0.95)';
+            }
+        });
+        
+        // Анимация при загрузке
+        document.addEventListener('DOMContentLoaded', function() {
+            const featureCards = document.querySelectorAll('.feature-card');
+            featureCards.forEach((card, index) => {
+                card.style.animationDelay = `${index * 0.1}s`;
+            });
+        });
+    </script>
+</body>
+</html>
